@@ -20,4 +20,4 @@ fairseq-train \
 --fp16 \
 --data-buffer-size 20 \
 --max-epoch 300 \
---save-dir ./ckpts
+--save-dir /blob/mol/checkpoint_shiyu
