@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+mkdir -p /blob/mol/checkpoint_$1_$2
+
 fairseq-train \
 --user-dir ../../graphormer \
 --num-workers 16 \
@@ -20,4 +22,4 @@ fairseq-train \
 --fp16 \
 --data-buffer-size 20 \
 --max-epoch 300 \
---save-dir /blob/mol/checkpoint_shiyu
+--save-dir /blob/mol/checkpoint_$1_$2
