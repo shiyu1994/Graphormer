@@ -2,9 +2,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-mkdir -p /blob/mol/checkpoint_$1_$2_$3
+mkdir checkpoint_$1_$2_$3
 
-if [[ $3 == "graphormer_v2" ]] then;
+if [[ $3 == "graphormer_v2" ]]; then
     fairseq-train \
     --user-dir ../../graphormer \
     --num-workers 16 \
@@ -24,7 +24,7 @@ if [[ $3 == "graphormer_v2" ]] then;
     --data-buffer-size 20 \
     --max-epoch 300 \
     --save-dir /blob/mol/checkpoint_$1_$2_$3
-elif [[ $3 == "graphormer_v1" ]] then;
+elif [[ $3 == "graphormer_v1" ]]; then
     fairseq-train \
     --user-dir ../../graphormer \
     --num-workers 16 \
