@@ -15,7 +15,7 @@ from fairseq.modules.quant_noise import quant_noise as apply_quant_noise_
 
 from .multihead_attention import MultiheadAttention
 from .graphormer_layers import GraphNodeFeature, GraphAttnBias
-from .graphormer_graph_encoder_layer import GraphormerGraphEncoderLayer
+from .graphormer_graph_encoder_layer import GraphormerGraphEncoderLayer, GraphormerGraphEncoderLayerV1
 
 
 def init_graphormer_params(module):
@@ -207,8 +207,6 @@ class GraphormerGraphEncoder(nn.Module):
             x = self.graph_node_feature(batched_data)
 
         if perturb is not None:
-            #ic(torch.mean(torch.abs(x[:, 1, :])))
-            #ic(torch.mean(torch.abs(perturb)))
             x[:, 1:, :] += perturb
 
         # x: B x T x C
@@ -240,6 +238,157 @@ class GraphormerGraphEncoder(nn.Module):
                 x,
                 self_attn_padding_mask=padding_mask,
                 self_attn_mask=attn_mask,
+                self_attn_bias=attn_bias,
+            )
+            if not last_state_only:
+                inner_states.append(x)
+
+        graph_rep = x[0, :, :]
+
+        if last_state_only:
+            inner_states = [x]
+
+        if self.traceable:
+            return torch.stack(inner_states), graph_rep
+        else:
+            return inner_states, graph_rep
+
+
+class GraphormerGraphEncoderV1(GraphormerGraphEncoder):
+    def __init__(
+        self,
+        num_atoms: int,
+        num_in_degree: int,
+        num_out_degree: int,
+        num_edges: int,
+        num_spatial: int,
+        num_edge_dis: int,
+        edge_type: str,
+        multi_hop_max_dist: int,
+        num_encoder_layers: int = 12,
+        embedding_dim: int = 768,
+        ffn_embedding_dim: int = 768,
+        num_attention_heads: int = 32,
+        dropout: float = 0.1,
+        attention_dropout: float = 0.1,
+        input_dropout: float = 0.1,
+        layerdrop: float = 0.0,
+        encoder_normalize_before: bool = False,
+        apply_graphormer_init: bool = False,
+        activation_fn: str = "gelu",
+        embed_scale: float = None,
+        freeze_embeddings: bool = False,
+        n_trans_layers_to_freeze: int = 0,
+        export: bool = False,
+        traceable: bool = False,
+        q_noise: float = 0.0,
+        qn_block_size: int = 8,
+    ) -> None:
+        super().__init__(
+            num_atoms=num_atoms,
+            num_in_degree=num_in_degree,
+            num_out_degree=num_out_degree,
+            num_edges=num_edges,
+            num_spatial=num_spatial,
+            num_edge_dis=num_edge_dis,
+            edge_type=edge_type,
+            multi_hop_max_dist=multi_hop_max_dist,
+            num_encoder_layers=num_encoder_layers,
+            embedding_dim=embedding_dim,
+            ffn_embedding_dim=ffn_embedding_dim,
+            num_attention_heads=num_attention_heads,
+            dropout=dropout,
+            attention_dropout=attention_dropout,
+            activation_dropout=0.0,
+            layerdrop=layerdrop,
+            encoder_normalize_before=encoder_normalize_before,
+            apply_graphormer_init=apply_graphormer_init,
+            activation_fn=activation_fn,
+            embed_scale=embed_scale,
+            freeze_embeddings=freeze_embeddings,
+            n_trans_layers_to_freeze=n_trans_layers_to_freeze,
+            export=export,
+            traceable=traceable,
+            q_noise=q_noise,
+            qn_block_size=qn_block_size,
+        )
+
+        self.input_dropout_module = FairseqDropout(
+            input_dropout, module_name=self.__class__.__name__
+        )
+
+    def build_graphormer_graph_encoder_layer(
+        self,
+        embedding_dim,
+        ffn_embedding_dim,
+        num_attention_heads,
+        dropout,
+        attention_dropout,
+        activation_dropout,
+        activation_fn,
+        export,
+        q_noise,
+        qn_block_size,
+    ):
+        return GraphormerGraphEncoderLayerV1(
+            embedding_dim=embedding_dim,
+            ffn_embedding_dim=ffn_embedding_dim,
+            num_attention_heads=num_attention_heads,
+            dropout=dropout,
+            attention_dropout=attention_dropout,
+            activation_fn=activation_fn,
+            export=export,
+            q_noise=q_noise,
+            qn_block_size=qn_block_size,
+        )
+
+    def forward(
+        self,
+        batched_data,
+        perturb=None,
+        last_state_only: bool = False,
+        token_embeddings: Optional[torch.Tensor] = None,
+        attn_mask: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        is_tpu = False
+
+        if token_embeddings is not None:
+            x = token_embeddings
+        else:
+            x = self.graph_node_feature(batched_data)
+
+        if perturb is not None:
+            x[:, 1:, :] += perturb
+
+        # x: B x T x C
+
+        attn_bias = self.graph_attn_bias(batched_data)
+
+        if self.embed_scale is not None:
+            x = x * self.embed_scale
+
+        if self.quant_noise is not None:
+            x = self.quant_noise(x)
+
+        if self.emb_layer_norm is not None:
+            x = self.emb_layer_norm(x)
+
+        x = self.dropout_module(x)
+
+        # account for padding while computing the representation
+
+        # B x T x C -> T x B x C
+        x = x.transpose(0, 1)
+
+        inner_states = []
+        if not last_state_only:
+            inner_states.append(x)
+
+        for layer in self.layers:
+            x, _ = layer(
+                x,
+                self_attn_padding_mask=None,
+                self_attn_mask=None,
                 self_attn_bias=attn_bias,
             )
             if not last_state_only:

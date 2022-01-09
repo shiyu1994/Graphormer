@@ -140,3 +140,69 @@ class GraphormerGraphEncoderLayer(nn.Module):
         x = residual + x
         x = self.final_layer_norm(x)
         return x, attn
+
+
+class GraphormerGraphEncoderLayerV1(GraphormerGraphEncoderLayer):
+    def __init__(
+        self,
+        embedding_dim: int = 768,
+        ffn_embedding_dim: int = 3072,
+        num_attention_heads: int = 8,
+        dropout: float = 0.1,
+        attention_dropout: float = 0.1,
+        activation_fn: str = "relu",
+        export: bool = False,
+        q_noise: float = 0.0,
+        qn_block_size: int = 8,
+        init_fn: Callable = None,
+    ) -> None:
+        super(GraphormerGraphEncoderLayerV1, self).__init__(
+            embedding_dim=embedding_dim,
+            ffn_embedding_dim=ffn_embedding_dim,
+            num_attention_heads=num_attention_heads,
+            dropout=dropout,
+            attention_dropout=attention_dropout,
+            activation_dropout=0.0,
+            activation_fn=activation_fn,
+            export=export,
+            q_noise=q_noise,
+            qn_block_size=qn_block_size,
+            init_fn=init_fn
+        )
+        self.attention_dropout_module = FairseqDropout(
+            dropout, module_name=self.__class__.__name__
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        self_attn_bias: Optional[torch.Tensor] = None,
+        self_attn_mask: Optional[torch.Tensor] = None,
+        self_attn_padding_mask: Optional[torch.Tensor] = None,
+    ):
+        """
+        LayerNorm is applied either before or after the self-attention/ffn
+        modules similar to the original Transformer implementation.
+        """
+        # x: T x B x C
+        residual = x
+        x = self.self_attn_layer_norm(x)
+        x, attn = self.self_attn(
+            query=x,
+            key=x,
+            value=x,
+            attn_bias=self_attn_bias,
+            key_padding_mask=self_attn_padding_mask,
+            need_weights=False,
+            attn_mask=self_attn_mask,
+        )
+        x = self.attention_dropout_module(x)
+        x = residual + x
+
+        residual = x
+        x = self.final_layer_norm(x)
+        x = self.activation_fn(self.fc1(x))
+        x = self.fc2(x)
+        x = self.dropout_module(x)
+        x = residual + x
+        return x, attn
