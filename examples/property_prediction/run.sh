@@ -18,7 +18,7 @@ if [[ $3 == "graphormer_v2" ]] && [[ $1 == "large" ]] && [[ $2 == "pcqm4mv2" ]];
     --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
     --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
     --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
-    --lr 8e-5 --end-learning-rate 1e-9 \
+    --lr 4e-5 --end-learning-rate 1e-9 \
     --batch-size 64 \
     --fp16 \
     --data-buffer-size 20 \
@@ -38,7 +38,7 @@ elif [[ $3 == "graphormer_v2" ]] && [[ $1 == "large" ]]; then
     --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
     --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
     --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
-    --lr 4e-5 --end-learning-rate 1e-9 \
+    --lr 8e-5 --end-learning-rate 1e-9 \
     --batch-size 64 \
     --fp16 \
     --data-buffer-size 20 \
