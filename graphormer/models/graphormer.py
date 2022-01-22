@@ -125,6 +125,16 @@ class GraphormerModel(FairseqEncoderModel):
             action="store_true",
             help="apply layernorm before each encoder block",
         )
+        parser.add_argument(
+            "--pre-layernorm",
+            action="store_true",
+            help="apply layernorm before self-attention and ffn",
+        )
+        parser.add_argument(
+            "--sandwich-layernorm",
+            action="store_true",
+            help="apply layernorm both before and after self-attention and ffn",
+        )
 
     def max_nodes(self):
         return self.encoder.max_nodes
@@ -171,6 +181,8 @@ class GraphormerEncoder(FairseqEncoder):
             attention_dropout=args.attention_dropout,
             activation_dropout=args.act_dropout,
             encoder_normalize_before=args.encoder_normalize_before,
+            pre_layernorm=args.pre_layernorm,
+            sandwich_layernorm=args.sandwich_layernorm,
             apply_graphormer_init=args.apply_graphormer_init,
             activation_fn=args.activation_fn,
         )
@@ -268,6 +280,8 @@ def base_architecture(args):
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.pre_layernorm = getattr(args, "pre_layernorm", False)
+    args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
 
 
 @register_model_architecture("graphormer", "graphormer_base")
@@ -298,6 +312,8 @@ def graphormer_base_architecture(args):
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.pre_layernorm = getattr(args, "pre_layernorm", False)
+    args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
     args.share_encoder_input_output_embed = getattr(
             args, "share_encoder_input_output_embed", False
@@ -319,6 +335,8 @@ def graphormer_slim_architecture(args):
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.pre_layernorm = getattr(args, "pre_layernorm", False)
+    args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
     args.share_encoder_input_output_embed = getattr(
             args, "share_encoder_input_output_embed", False
@@ -340,6 +358,8 @@ def graphormer_large_architecture(args):
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.pre_layernorm = getattr(args, "pre_layernorm", False)
+    args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
     args.share_encoder_input_output_embed = getattr(
             args, "share_encoder_input_output_embed", False
