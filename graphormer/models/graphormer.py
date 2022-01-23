@@ -279,7 +279,7 @@ def base_architecture(args):
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", False)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
-    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", False)
     args.pre_layernorm = getattr(args, "pre_layernorm", False)
     args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
 
@@ -311,7 +311,7 @@ def graphormer_base_architecture(args):
         args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 768)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
-    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", False)
     args.pre_layernorm = getattr(args, "pre_layernorm", False)
     args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
@@ -334,7 +334,7 @@ def graphormer_slim_architecture(args):
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 80)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
-    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", False)
     args.pre_layernorm = getattr(args, "pre_layernorm", False)
     args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
@@ -357,7 +357,7 @@ def graphormer_large_architecture(args):
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 1024)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
-    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
+    args.encoder_normalize_before = getattr(args, "encoder_normalize_before", False)
     args.pre_layernorm = getattr(args, "pre_layernorm", False)
     args.sandwich_layernorm = getattr(args, "sandwich_layernorm", False)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
