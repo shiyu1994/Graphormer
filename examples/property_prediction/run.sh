@@ -22,7 +22,7 @@ if [[ $2 == "preln" ]]; then
     --batch-size 256 \
     --fp16 \
     --data-buffer-size 20 \
-    --save-dir ./ckpts \
+    --save-dir /blob/mol/20220123-$1-$2-$3 \
     --pre-layernorm
 elif [[ $2 == "sandwich" ]]; then
     fairseq-train \
@@ -42,7 +42,7 @@ elif [[ $2 == "sandwich" ]]; then
     --batch-size 256 \
     --fp16 \
     --data-buffer-size 20 \
-    --save-dir ./ckpts \
+    --save-dir /blob/mol/20220123-$1-$2-$3 \
     --sandwich-layernorm
 elif [[ $2 == "postln" ]]; then
     fairseq-train \
@@ -62,5 +62,5 @@ elif [[ $2 == "postln" ]]; then
     --batch-size 256 \
     --fp16 \
     --data-buffer-size 20 \
-    --save-dir ./ckpts
+    --save-dir /blob/mol/20220123-$1-$2-$3
 fi
