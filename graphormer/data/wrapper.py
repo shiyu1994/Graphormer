@@ -8,6 +8,7 @@ from ogb.lsc.pcqm4mv2_pyg import PygPCQM4Mv2Dataset
 from functools import lru_cache
 import pyximport
 import torch.distributed as dist
+import graphormer_preprocess_cuda
 
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 from . import algos
@@ -38,11 +39,18 @@ def preprocess_item(item):
         convert_to_single_emb(edge_attr) + 1
     )
 
-    shortest_path_result, path = algos.floyd_warshall(adj.numpy())
-    max_dist = np.amax(shortest_path_result)
-    edge_input = algos.gen_edge_input(max_dist, path, attn_edge_type.numpy())
-    spatial_pos = torch.from_numpy((shortest_path_result)).long()
+    max_dist = N + 1
+    #print(adj)
+    print(adj.device, N, adj, attn_edge_type)
+    shortest_path_result, path = graphormer_preprocess_cuda.floyd_warshall(adj.cuda().long(), max_dist)
+    #shortest_path_result, path = algos.floyd_warshall(adj.numpy())
+    #max_dist = np.amax(shortest_path_result)
+    #edge_input = algos.gen_edge_input(max_dist, path, attn_edge_type.numpy())
+    edge_input = torch.zeros([N, N, max_dist, edge_attr.size(-1)], dtype=torch.long).cuda()
+    graphormer_preprocess_cuda.gen_edge_input(max_dist, path, shortest_path_result, edge_attr.size(-1), attn_edge_type.cuda(), edge_input)
+    spatial_pos = shortest_path_result.long().cpu()
     attn_bias = torch.zeros([N + 1, N + 1], dtype=torch.float)  # with graph token
+    print("attn_bias.device = ", attn_bias.device)
 
     # combine
     item.x = x
@@ -51,7 +59,7 @@ def preprocess_item(item):
     item.spatial_pos = spatial_pos
     item.in_degree = adj.long().sum(dim=1).view(-1)
     item.out_degree = item.in_degree  # for undirected graph
-    item.edge_input = torch.from_numpy(edge_input).long()
+    item.edge_input = edge_input.long().cpu()#torch.from_numpy(edge_input).long()
 
     return item
 

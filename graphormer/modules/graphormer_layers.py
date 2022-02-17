@@ -110,6 +110,7 @@ class GraphAttnBias(nn.Module):
             batched_data["spatial_pos"],
             batched_data["x"],
         )
+        print("attn_bias.device = ", attn_bias.device)
         # in_degree, out_degree = batched_data.in_degree, batched_data.in_degree
         edge_input, attn_edge_type = (
             batched_data["edge_input"],
