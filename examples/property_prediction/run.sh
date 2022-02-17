@@ -4,7 +4,7 @@
 
 git_commit=$(git rev-parse HEAD)
 echo "Using git commit ${git_commit}"
-checkpoint_dir=checkpoint_$1_$2_$3_$4_${git_commit}
+checkpoint_dir=checkpoint_$1_$2_$3_$4_${git_commit}_hyper
 mkdir /blob/mol/${checkpoint_dir}
 
 if [[ $4 == "fp16" ]]; then
