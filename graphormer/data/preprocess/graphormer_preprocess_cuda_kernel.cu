@@ -79,7 +79,7 @@ __device__ void get_path(
   const torch::PackedTensorAccessor64<int_t, 2> pred,
   const torch::PackedTensorAccessor64<int_t, 2> dist,
   int_t* out_path) {
-  int_t stk[MAX_DIST];
+  int_t stk[MAX_DIST * 2 + 10];
   int64_t stk_ptr = 0;
   stk[0] = i;
   stk[1] = j;
@@ -144,13 +144,15 @@ __global__ void gen_edge_input_kernel(
     if (i_j_dist > 1 && i_j_dist != max_dist) {
       get_path<int_t, MAX_DIST>(num_nodes, max_dist, i, j, pred, dist, path);
     }
-    int start = i;
-    for (int e = 0; e < i_j_dist; ++e) {
-      const int end = (e == i_j_dist - 1 ? j : path[e]);
-      for (int feature_index = 0; feature_index < num_edge_features; ++feature_index) {
-        output_edge_features[i][j][e][feature_index] = edge_features[start][end][feature_index];
+    if (i_j_dist != max_dist) {
+      int start = i;
+      for (int e = 0; e < i_j_dist; ++e) {
+        const int end = (e == i_j_dist - 1 ? j : path[e]);
+        for (int feature_index = 0; feature_index < num_edge_features; ++feature_index) {
+          output_edge_features[i][j][e][feature_index] = edge_features[start][end][feature_index];
+        }
+        start = end;
       }
-      start = end;
     }
   }
 }

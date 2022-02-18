@@ -54,15 +54,16 @@ def floyd_warshall(adjacency_matrix):
     return M, path
 
 
-def get_all_edges(path, i, j):
+def get_all_edges(path, dist, i, j):
     cdef unsigned int k = path[i][j]
-    if k == 0:
+    cdef unsigned int d = dist[i][j]
+    if d <= 1:
         return []
     else:
-        return get_all_edges(path, i, k) + [k] + get_all_edges(path, k, j)
+        return get_all_edges(path, dist, i, k) + [k] + get_all_edges(path, dist, k, j)
 
 
-def gen_edge_input(max_dist, path, edge_feat):
+def gen_edge_input(max_dist, dist, path, edge_feat):
 
     (nrows, ncols) = path.shape
     assert nrows == ncols
@@ -79,12 +80,15 @@ def gen_edge_input(max_dist, path, edge_feat):
 
     for i in range(n):
         for j in range(n):
+            if dist[i][j] == 510:
+                assert path_copy[i][j] == 510
             if i == j:
                 continue
             if path_copy[i][j] == 510:
                 continue
-            path = [i] + get_all_edges(path_copy, i, j) + [j]
+            path = [i] + get_all_edges(path_copy, dist, i, j) + [j]
             num_path = len(path) - 1
+            assert num_path == dist[i][j]
             for k in range(num_path):
                 edge_fea_all[i, j, k, :] = edge_feat_copy[path[k], path[k+1], :]
 

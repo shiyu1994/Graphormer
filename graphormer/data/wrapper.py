@@ -40,17 +40,22 @@ def preprocess_item(item):
     )
 
     max_dist = N + 1
-    #print(adj)
-    print(adj.device, N, adj, attn_edge_type)
     shortest_path_result, path = graphormer_preprocess_cuda.floyd_warshall(adj.cuda().long(), max_dist)
-    #shortest_path_result, path = algos.floyd_warshall(adj.numpy())
+    shortest_path_result_cython, path_cython = algos.floyd_warshall(adj.numpy())
+    sp_diff = np.sum((shortest_path_result_cython - shortest_path_result.cpu().numpy()) ** 2)
+    if sp_diff != 0:
+        print("error !!!! sp ", shortest_path_result_cython, "vs", shortest_path_result.cpu().numpy())
+    assert sp_diff == 0
     #max_dist = np.amax(shortest_path_result)
-    #edge_input = algos.gen_edge_input(max_dist, path, attn_edge_type.numpy())
-    edge_input = torch.zeros([N, N, max_dist, edge_attr.size(-1)], dtype=torch.long).cuda()
+    edge_input_cython = algos.gen_edge_input(max_dist, shortest_path_result_cython, path_cython, attn_edge_type.numpy())
+    edge_input = -1 * torch.ones([N, N, max_dist, edge_attr.size(-1)], dtype=torch.long).cuda()
     graphormer_preprocess_cuda.gen_edge_input(max_dist, path, shortest_path_result, edge_attr.size(-1), attn_edge_type.cuda(), edge_input)
+    edge_diff = np.sum((edge_input.cpu().numpy() - edge_input_cython) ** 2)
+    if edge_diff != 0:
+        print("error !!! edge input ", edge_input_cython, "vs", edge_input.cpu().numpy())
+    assert edge_diff == 0
     spatial_pos = shortest_path_result.long().cpu()
     attn_bias = torch.zeros([N + 1, N + 1], dtype=torch.float)  # with graph token
-    print("attn_bias.device = ", attn_bias.device)
 
     # combine
     item.x = x
