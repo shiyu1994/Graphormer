@@ -39,21 +39,12 @@ def preprocess_item(item):
         convert_to_single_emb(edge_attr) + 1
     )
 
-    #shortest_path_result, path = algos.floyd_warshall(adj.numpy())
-    #max_dist = np.amax(shortest_path_result)
-    #edge_input = algos.gen_edge_input(max_dist, shortest_path_result, path, attn_edge_type.numpy())
-    #spatial_pos = torch.from_numpy((shortest_path_result)).long()
-    #attn_bias = torch.zeros([N + 1, N + 1], dtype=torch.float)  # with graph token
-
     # combine
     item.n_node = N
     item.x = x
-    #item.attn_bias = attn_bias
     item.attn_edge_type = attn_edge_type
-    #item.spatial_pos = spatial_pos
     item.in_degree = adj.long().sum(dim=1).view(-1)
     item.out_degree = item.in_degree  # for undirected graph
-    #item.edge_input = torch.from_numpy(edge_input).long()
     item.adj = adj.long()
 
     return item
