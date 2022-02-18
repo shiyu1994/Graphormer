@@ -196,9 +196,9 @@ class MultiheadAttention(nn.Module):
 
         if before_softmax:
             return attn_weights, v
-
+        attn_weights_float = attn_weights.float()
         attn_weights_float = utils.softmax(
-            attn_weights, dim=-1, onnx_trace=self.onnx_trace
+            attn_weights_float, dim=-1, onnx_trace=self.onnx_trace
         )
         attn_weights = attn_weights_float.type_as(attn_weights)
         attn_probs = self.dropout_module(attn_weights)
