@@ -53,6 +53,7 @@ class GraphormerGraphEncoder(nn.Module):
         num_edge_dis: int,
         edge_type: str,
         multi_hop_max_dist: int,
+        spatial_pos_max: int,
         num_encoder_layers: int = 12,
         embedding_dim: int = 768,
         ffn_embedding_dim: int = 768,
@@ -99,6 +100,7 @@ class GraphormerGraphEncoder(nn.Module):
             num_edge_dis=num_edge_dis,
             edge_type=edge_type,
             multi_hop_max_dist=multi_hop_max_dist,
+            spatial_pos_max=spatial_pos_max,
             hidden_dim=embedding_dim,
             n_layers=num_encoder_layers,
         )

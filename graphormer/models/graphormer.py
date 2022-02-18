@@ -162,6 +162,7 @@ class GraphormerEncoder(FairseqEncoder):
             num_edge_dis=args.num_edge_dis,
             edge_type=args.edge_type,
             multi_hop_max_dist=args.multi_hop_max_dist,
+            spatial_pos_max=args.spatial_pos_max,
             # >
             num_encoder_layers=args.encoder_layers,
             embedding_dim=args.encoder_embed_dim,

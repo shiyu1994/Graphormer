@@ -87,11 +87,13 @@ class GraphAttnBias(nn.Module):
         hidden_dim,
         edge_type,
         multi_hop_max_dist,
+        spatial_pos_max,
         n_layers,
     ):
         super(GraphAttnBias, self).__init__()
         self.num_heads = num_heads
         self.multi_hop_max_dist = multi_hop_max_dist
+        self.spatial_pos_max = spatial_pos_max
 
         self.edge_encoder = nn.Embedding(num_edges + 1, num_heads, padding_idx=0)
         self.edge_type = edge_type
@@ -106,39 +108,26 @@ class GraphAttnBias(nn.Module):
         self.apply(lambda module: init_params(module, n_layers=n_layers))
 
     def forward(self, batched_data):
-        attn_bias, spatial_pos, x, n_node_true, adj = (
-            batched_data["attn_bias"],
-            batched_data["spatial_pos"],
+        x, n_node_true, adj = (
             batched_data["x"],
             batched_data["n_node"],
             batched_data["adj"],
         )
 
-        # in_degree, out_degree = batched_data.in_degree, batched_data.in_degree
-        edge_input, attn_edge_type = (
-            batched_data["edge_input"],
-            batched_data["attn_edge_type"],
-        )
-
-        spatial_pos_cuda = torch.zeros_like(spatial_pos)
-        spatial_pos_cuda, floyd_pred_cuda = graphormer_preprocess_cuda.floyd_warshall_batch(adj, n_node_true, x.size()[1], 510)
-        spatial_pos_diff = torch.sum((spatial_pos_cuda - spatial_pos) ** 2)
-        if spatial_pos_diff != 0:
-            print("error !!! spatial_pos_diff = ", spatial_pos_diff)
-            print("spatial_pos_cuda = ", spatial_pos_cuda)
-            print("spatial_pos = ", spatial_pos)
-            exit(-1)
-        edge_input_cuda = torch.zeros_like(edge_input)
-        assert edge_input_cuda.size(-2) == self.multi_hop_max_dist
-        graphormer_preprocess_cuda.gen_edge_input_batch(510, x.size()[1], attn_edge_type.size()[-1], self.multi_hop_max_dist, n_node_true, floyd_pred_cuda, spatial_pos_cuda, attn_edge_type, edge_input_cuda)
-        edge_input_diff = torch.sum((edge_input_cuda - edge_input) ** 2)
-        if edge_input_diff != 0:
-            print("error !!! edge_input_diff = ", edge_input_diff)
-            print("edge_input_cuda = ", edge_input_cuda)
-            print("edge_input = ", edge_input)
-            exit(-1)
-
         n_graph, n_node = x.size()[:2]
+
+        # in_degree, out_degree = batched_data.in_degree, batched_data.in_degree
+        attn_edge_type = batched_data["attn_edge_type"]
+
+        spatial_pos, floyd_pred = graphormer_preprocess_cuda.floyd_warshall_batch(adj, n_node_true, n_node, 510)
+        max_dist = (torch.max(spatial_pos) - 1).cpu().item()
+        multi_hop_max_dist = max_dist if max_dist <= self.multi_hop_max_dist else self.multi_hop_max_dist
+        edge_input = torch.zeros([n_graph, n_node, n_node, multi_hop_max_dist, attn_edge_type.size()[-1]], device=x.device, dtype=torch.long)
+        graphormer_preprocess_cuda.gen_edge_input_batch(510, n_node, attn_edge_type.size()[-1], multi_hop_max_dist, n_node_true, floyd_pred, spatial_pos, attn_edge_type, edge_input)
+
+        attn_bias = torch.zeros([n_graph, n_node + 1, n_node + 1], dtype=torch.float, device=x.device)
+        attn_bias[:, 1:, 1:][spatial_pos >= self.spatial_pos_max + 1] = float("-inf")
+
         graph_attn_bias = attn_bias.clone()
         graph_attn_bias = graph_attn_bias.unsqueeze(1).repeat(
             1, self.num_heads, 1, 1
