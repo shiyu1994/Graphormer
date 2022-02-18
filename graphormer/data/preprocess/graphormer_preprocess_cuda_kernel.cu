@@ -70,14 +70,89 @@ std::vector<torch::Tensor> floyd_warshall_cuda(const torch::Tensor adj, const si
   return {output_dist, output_pred};
 }
 
-template <typename int_t, size_t MAX_DIST>
+template <typename int_t>
+__global__ void floyd_warshall_batch_kernel(
+  int_t max_dist,
+  const torch::PackedTensorAccessor64<int_t, 1> n_node_batch,
+  const torch::PackedTensorAccessor64<int_t, 3> adj_batch,
+  torch::PackedTensorAccessor64<int_t, 3> output_dist_batch,
+  torch::PackedTensorAccessor64<int_t, 3> output_pred_batch) {
+  const int_t n_node = n_node_batch[blockIdx.x];
+  auto output_dist = output_dist_batch[blockIdx.x];
+  auto output_pred = output_pred_batch[blockIdx.x];
+  auto adj = adj_batch[blockIdx.x];
+  for (int_t i = static_cast<int_t>(threadIdx.x); i < n_node; i += static_cast<int_t>(blockDim.x)) {
+    for (int_t j = static_cast<int_t>(threadIdx.y); j < n_node; j += static_cast<int_t>(blockDim.y)) {
+      if (i < n_node && j < n_node) {
+        if (i == j) {
+          output_dist[i][j] = 0;
+        } else {
+          if (adj[i][j]) {
+            output_dist[i][j] = 1;
+          } else {
+            output_dist[i][j] = max_dist;
+          }
+        }
+      }
+    }
+  }
+  __syncthreads();
+  for (int_t k = 0; k < n_node; ++k) {
+    for (int_t i = static_cast<int_t>(threadIdx.x); i < n_node; i += static_cast<int_t>(blockDim.x)) {
+      for (int_t j = static_cast<int_t>(threadIdx.y); j < n_node; j += static_cast<int_t>(blockDim.y)) {
+        if (i < n_node && j < n_node && i != k && j != k && i != j) {
+          const int_t new_dist = output_dist[i][k] + output_dist[k][j];
+          const int_t old_dist = output_dist[i][j];
+          if (new_dist < old_dist) {
+            output_dist[i][j] = new_dist;
+            output_pred[i][j] = k;
+          }
+        }
+      }
+    }
+    __syncthreads();
+  }
+  for (int_t i = static_cast<int_t>(threadIdx.x); i < n_node; i += static_cast<int_t>(blockDim.x)) {
+    for (int_t j = static_cast<int_t>(threadIdx.y); j < n_node; j += static_cast<int_t>(blockDim.y)) {
+      if (i < n_node && j < n_node) {
+        output_dist[i][j] += 1;
+      }
+    }
+  }
+}
+
+std::vector<torch::Tensor> floyd_warshall_batch_cuda(const torch::Tensor adj, const torch::Tensor n_node, const size_t max_n_node, const size_t max_dist) {
+  const size_t num_graphs = adj.size(0);
+  int64_t max_n_node_aligned = 1;
+  int64_t max_n_node_shift = static_cast<int64_t>(max_n_node) - 1;
+  while (max_n_node_shift > 0) {
+    max_n_node_shift >>= 1;
+    max_n_node_aligned <<= 1;
+  }
+  const int block_dim_x_y = max_n_node_aligned < 32 ? max_n_node_aligned : 32;
+  dim3 block_dim(block_dim_x_y, block_dim_x_y);
+  auto output_dist = torch::zeros_like(adj);
+  auto output_pred = torch::zeros_like(adj);
+  AT_DISPATCH_INTEGRAL_TYPES(
+    adj.type(), "floyd_warshall_batch_kernel", ([&] {
+      floyd_warshall_batch_kernel<scalar_t><<<num_graphs, block_dim>>>(
+        max_dist,
+        n_node.packed_accessor64<scalar_t, 1>(),
+        adj.packed_accessor64<scalar_t, 3>(),
+        output_dist.packed_accessor64<scalar_t, 3>(),
+        output_pred.packed_accessor64<scalar_t, 3>());
+  }));
+  return {output_dist, output_pred};
+}
+
+template <typename int_t, typename accessor_t, size_t MAX_DIST, int64_t offset>
 __device__ void get_path(
   const int_t num_nodes,
   const int_t max_dist,
   const int_t i,
   const int_t j,
-  const torch::PackedTensorAccessor64<int_t, 2> pred,
-  const torch::PackedTensorAccessor64<int_t, 2> dist,
+  const accessor_t pred,
+  const accessor_t dist,
   int_t* out_path) {
   int_t stk[MAX_DIST * 2 + 10];
   int64_t stk_ptr = 0;
@@ -91,7 +166,7 @@ __device__ void get_path(
     const int_t next_flag = stk[2 * stk_ptr + 2];
 
     const int_t stk_k = pred[stk_i][stk_j];
-    const int_t stk_i_k_dist = dist[stk_i][stk_k];
+    const int_t stk_i_k_dist = dist[stk_i][stk_k] - static_cast<int_t>(offset);
 
     if (next_flag == max_dist) {
       // push first segment
@@ -108,7 +183,7 @@ __device__ void get_path(
       }
     } else if (next_flag == stk_i) {
       // push second segment
-      const int_t stk_k_j_dist = dist[stk_k][stk_j];
+      const int_t stk_k_j_dist = dist[stk_k][stk_j] - static_cast<int_t>(offset);
       ++stk_ptr;
       stk[2 * stk_ptr] = stk_k;
       stk[2 * stk_ptr + 1] = stk_j;
@@ -142,7 +217,7 @@ __global__ void gen_edge_input_kernel(
     int_t path[MAX_DIST];
     const int_t i_j_dist = dist[i][j];
     if (i_j_dist > 1 && i_j_dist != max_dist) {
-      get_path<int_t, MAX_DIST>(num_nodes, max_dist, i, j, pred, dist, path);
+      get_path<int_t, torch::PackedTensorAccessor64<int_t, 2>, MAX_DIST, 0>(num_nodes, max_dist, i, j, pred, dist, path);
     }
     if (i_j_dist != max_dist) {
       int start = i;
@@ -191,6 +266,98 @@ void gen_edge_input_cuda(
     } else if (max_dist <= 512) {
       gen_edge_input_kernel<scalar_t, 512><<<grid_dim, block_dim>>>(
         num_nodes, max_dist, pred_accessor, dist_accessor, num_edge_features, edge_features_accessor, output_edge_features_accessor);
+    } else {
+      std::cout << "error, max_dist = " << max_dist << " is not supported by gen_edge_input." << std::endl;
+      exit(-1);
+    }
+  }));
+}
+
+template <typename int_t, size_t MAX_DIST>
+__global__ void gen_edge_input_batch_kernel(
+  const int_t max_dist,
+  const int_t max_n_node,
+  const int_t num_edge_features,
+  const int_t multi_hop_max_dist,
+  const torch::PackedTensorAccessor64<int_t, 1> n_node_batch,
+  const torch::PackedTensorAccessor64<int_t, 3> pred_batch,
+  const torch::PackedTensorAccessor64<int_t, 3> dist_batch,
+  const torch::PackedTensorAccessor64<int_t, 4> edge_features_batch,
+  torch::PackedTensorAccessor64<int_t, 5> output_edge_features_batch) {
+
+  const int_t n_node = n_node_batch[blockIdx.x];
+  auto dist = dist_batch[blockIdx.x];
+  auto pred = pred_batch[blockIdx.x];
+  auto edge_features = edge_features_batch[blockIdx.x];
+  auto output_edge_features = output_edge_features_batch[blockIdx.x];
+  int_t path[MAX_DIST];
+  for (int_t i = static_cast<int_t>(threadIdx.x); i < n_node; i += static_cast<int_t>(blockDim.x)) {
+    for (int_t j = static_cast<int_t>(threadIdx.y); j < n_node; j += static_cast<int_t>(blockDim.y)) {
+      if (i == j) continue;
+      const int_t i_j_dist = dist[i][j] - 1;
+      if (i_j_dist > 1 && i_j_dist != max_dist) {
+        get_path<int_t, torch::TensorAccessor<int_t, 2>, MAX_DIST, 1>(n_node, max_dist, i, j, pred, dist, path);
+      }
+      if (i_j_dist != max_dist) {
+        int start = i;
+        for (int e = 0; e < i_j_dist && e < static_cast<int>(multi_hop_max_dist); ++e) {
+          const int end = (e == i_j_dist - 1 ? j : path[e]);
+          for (int feature_index = 0; feature_index < num_edge_features; ++feature_index) {
+            output_edge_features[i][j][e][feature_index] = edge_features[start][end][feature_index] + 1;
+          }
+          start = end;
+        }
+      }
+    }
+  }
+}
+
+#include <iostream>
+
+void gen_edge_input_batch_cuda(
+  const size_t max_dist,
+  const size_t max_n_node,
+  const size_t num_edge_features,
+  const size_t multi_hop_max_dist,
+  const torch::Tensor n_node,
+  const torch::Tensor pred,
+  const torch::Tensor dist,
+  const torch::Tensor edge_features,
+  torch::Tensor output_edge_features) {
+  const size_t num_graphs = n_node.size(0);
+  int64_t max_n_node_aligned = 1;
+  int64_t max_n_node_shift = static_cast<int64_t>(max_n_node) - 1;
+  while (max_n_node_shift > 0) {
+    max_n_node_shift >>= 1;
+    max_n_node_aligned <<= 1;
+  }
+  const int block_dim_x_y = max_n_node_aligned < 16 ? max_n_node_aligned : 16;
+  dim3 block_dim(block_dim_x_y, block_dim_x_y);
+  AT_DISPATCH_INTEGRAL_TYPES(pred.type(), "gen_edge_input_batch_kernel", ([&] {
+    auto n_node_accessor = n_node.packed_accessor64<scalar_t, 1>();
+    auto dist_accessor = dist.packed_accessor64<scalar_t, 3>();
+    auto pred_accessor = pred.packed_accessor64<scalar_t, 3>();
+    auto edge_features_accessor = edge_features.packed_accessor64<scalar_t, 4>();
+    auto output_edge_features_accessor = output_edge_features.packed_accessor64<scalar_t, 5>();
+    size_t max_dist_true = max_n_node + 1;
+    if (max_dist_true <= 16) {
+      gen_edge_input_batch_kernel<scalar_t, 16><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
+    } else if (max_dist_true <= 32) {
+      gen_edge_input_batch_kernel<scalar_t, 32><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
+    } else if (max_dist_true <= 64) {
+      gen_edge_input_batch_kernel<scalar_t, 64><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
+    } else if (max_dist_true <= 128) {
+      gen_edge_input_batch_kernel<scalar_t, 128><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
+    } else if (max_dist_true <= 256) {
+      gen_edge_input_batch_kernel<scalar_t, 256><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
+    } else if (max_dist_true <= 512) {
+      gen_edge_input_batch_kernel<scalar_t, 512><<<num_graphs, block_dim>>>(
+        max_dist, max_n_node, num_edge_features, multi_hop_max_dist, n_node_accessor, pred_accessor, dist_accessor, edge_features_accessor, output_edge_features_accessor);
     } else {
       std::cout << "error, max_dist = " << max_dist << " is not supported by gen_edge_input." << std::endl;
       exit(-1);

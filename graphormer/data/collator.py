@@ -52,6 +52,13 @@ def pad_spatial_pos_unsqueeze(x, padlen):
         x = new_x
     return x.unsqueeze(0)
 
+def pad_adj_unsqueeze(x, padlen):
+    xlen = x.size(0)
+    if xlen < padlen:
+        new_x = x.new_zeros([padlen, padlen], dtype=x.dtype)
+        new_x[:xlen, :xlen] = x
+        x = new_x
+    return x.unsqueeze(0)
 
 def pad_3d_unsqueeze(x, padlen1, padlen2, padlen3):
     x = x + 1
@@ -67,6 +74,7 @@ def collator(items, max_node=512, multi_hop_max_dist=20, spatial_pos_max=20):
     items = [item for item in items if item is not None and item.x.size(0) <= max_node]
     items = [
         (
+            item.n_node,
             item.idx,
             item.attn_bias,
             item.attn_edge_type,
@@ -76,10 +84,12 @@ def collator(items, max_node=512, multi_hop_max_dist=20, spatial_pos_max=20):
             item.x,
             item.edge_input[:, :, :multi_hop_max_dist, :],
             item.y,
+            item.adj
         )
         for item in items
     ]
     (
+        n_nodes,
         idxs,
         attn_biases,
         attn_edge_types,
@@ -89,6 +99,7 @@ def collator(items, max_node=512, multi_hop_max_dist=20, spatial_pos_max=20):
         xs,
         edge_inputs,
         ys,
+        adjs,
     ) = zip(*items)
 
     for idx, _ in enumerate(attn_biases):
@@ -109,10 +120,14 @@ def collator(items, max_node=512, multi_hop_max_dist=20, spatial_pos_max=20):
     spatial_pos = torch.cat(
         [pad_spatial_pos_unsqueeze(i, max_node_num) for i in spatial_poses]
     )
+    adj = torch.cat(
+        [pad_adj_unsqueeze(i, max_node_num) for i in adjs]
+    )
     in_degree = torch.cat([pad_1d_unsqueeze(i, max_node_num) for i in in_degrees])
 
     return dict(
         idx=torch.LongTensor(idxs),
+        n_node=torch.LongTensor(n_nodes),
         attn_bias=attn_bias,
         attn_edge_type=attn_edge_type,
         spatial_pos=spatial_pos,
@@ -121,4 +136,5 @@ def collator(items, max_node=512, multi_hop_max_dist=20, spatial_pos_max=20):
         x=x,
         edge_input=edge_input,
         y=y,
+        adj=adj,
     )

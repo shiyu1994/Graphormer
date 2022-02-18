@@ -11,6 +11,7 @@ import math
 import torch
 import torch.nn as nn
 
+import graphormer_preprocess_cuda
 
 def init_params(module, n_layers):
     if isinstance(module, nn.Linear):
@@ -105,17 +106,37 @@ class GraphAttnBias(nn.Module):
         self.apply(lambda module: init_params(module, n_layers=n_layers))
 
     def forward(self, batched_data):
-        attn_bias, spatial_pos, x = (
+        attn_bias, spatial_pos, x, n_node_true, adj = (
             batched_data["attn_bias"],
             batched_data["spatial_pos"],
             batched_data["x"],
+            batched_data["n_node"],
+            batched_data["adj"],
         )
-        print("attn_bias.device = ", attn_bias.device)
+
         # in_degree, out_degree = batched_data.in_degree, batched_data.in_degree
         edge_input, attn_edge_type = (
             batched_data["edge_input"],
             batched_data["attn_edge_type"],
         )
+
+        spatial_pos_cuda = torch.zeros_like(spatial_pos)
+        spatial_pos_cuda, floyd_pred_cuda = graphormer_preprocess_cuda.floyd_warshall_batch(adj, n_node_true, x.size()[1], 510)
+        spatial_pos_diff = torch.sum((spatial_pos_cuda - spatial_pos) ** 2)
+        if spatial_pos_diff != 0:
+            print("error !!! spatial_pos_diff = ", spatial_pos_diff)
+            print("spatial_pos_cuda = ", spatial_pos_cuda)
+            print("spatial_pos = ", spatial_pos)
+            exit(-1)
+        edge_input_cuda = torch.zeros_like(edge_input)
+        assert edge_input_cuda.size(-2) == self.multi_hop_max_dist
+        graphormer_preprocess_cuda.gen_edge_input_batch(510, x.size()[1], attn_edge_type.size()[-1], self.multi_hop_max_dist, n_node_true, floyd_pred_cuda, spatial_pos_cuda, attn_edge_type, edge_input_cuda)
+        edge_input_diff = torch.sum((edge_input_cuda - edge_input) ** 2)
+        if edge_input_diff != 0:
+            print("error !!! edge_input_diff = ", edge_input_diff)
+            print("edge_input_cuda = ", edge_input_cuda)
+            print("edge_input = ", edge_input)
+            exit(-1)
 
         n_graph, n_node = x.size()[:2]
         graph_attn_bias = attn_bias.clone()
