@@ -20,3 +20,6 @@ cd fairseq
 # git submodule update --init --recursive
 pip install . --use-feature=in-tree-build
 python setup.py build_ext --inplace
+cd ..
+cd graphormer/data/preprocess
+python setup.py install
