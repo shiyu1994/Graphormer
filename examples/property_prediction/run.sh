@@ -6,7 +6,7 @@ ulimit -c unlimited
 
 git_commit=$(git rev-parse HEAD)
 echo "Using git commit ${git_commit}"
-checkpoint_dir=checkpoint_$1_$2_$3_$4_$5_${git_commit}_hyper
+checkpoint_dir=checkpoint_$1_$2_$3_$4_$5_$6_${git_commit}_hyper
 mkdir /blob/mol/${checkpoint_dir}
 
 if [[ $4 == "fp16" ]]; then
@@ -26,7 +26,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -47,7 +47,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -68,7 +68,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -90,7 +90,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -111,7 +111,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -132,7 +132,7 @@ if [[ $4 == "fp16" ]]; then
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --fp16 \
             --data-buffer-size 20 \
             --max-epoch 300 \
@@ -156,7 +156,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir} \
@@ -176,7 +176,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir} \
@@ -196,7 +196,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir}
@@ -217,7 +217,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir} \
@@ -237,7 +237,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir} \
@@ -257,7 +257,7 @@ else
             --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
             --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \
             --lr 2e-4 --end-learning-rate 1e-9 \
-            --batch-size 64 \
+            --batch-size $6 \
             --data-buffer-size 20 \
             --max-epoch 300 \
             --save-dir /blob/mol/${checkpoint_dir}
