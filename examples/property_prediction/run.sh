@@ -6,7 +6,7 @@ ulimit -c unlimited
 
 git_commit=$(git rev-parse HEAD)
 echo "Using git commit ${git_commit}"
-checkpoint_dir=checkpoint_$1_$2_$3_$4_$5_$6_${7}_${git_commit}_hyper
+checkpoint_dir=checkpoint_$1_$2_$3_$4_$5_$6_${7}_${git_commit}
 mkdir /blob/mol/${checkpoint_dir}
 
 if [[ $4 == "fp16" ]]; then
