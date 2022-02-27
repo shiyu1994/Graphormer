@@ -63,23 +63,23 @@ class IS2RECriterion(FairseqCriterion):
         deltapos *= node_target_mask
         node_output *= node_target_mask
         target_cnt = node_target_mask.sum(dim=[1, 2])
-        node_loss = (
-            F.l1_loss(node_output.float(), deltapos, reduction="none")
-            .mean(dim=-1)
-            .sum(dim=-1)
-            / target_cnt
-        ).sum()
+        #node_loss = (
+        #    F.l1_loss(node_output.float(), deltapos, reduction="none")
+        #    .mean(dim=-1)
+        #    .sum(dim=-1)
+        #    / target_cnt
+        #).sum()
 
         logging_output = {
             "loss": loss.detach(),
             "energy_within_threshold": energy_within_threshold,
-            "node_loss": node_loss.detach(),
+            #"node_loss": node_loss.detach(),
             "sample_size": sample_size,
             "nsentences": sample_size,
             "num_nodes": valid_nodes.detach(),
             "node_loss_weight": node_loss_weight * sample_size,
         }
-        return loss + node_loss_weight * node_loss, sample_size, logging_output
+        return loss, sample_size, logging_output # + node_loss_weight * node_loss, sample_size
 
     @staticmethod
     def reduce_metrics(logging_outputs: Sequence[Mapping]) -> None:
