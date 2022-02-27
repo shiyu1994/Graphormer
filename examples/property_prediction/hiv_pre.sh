@@ -137,33 +137,128 @@ else
 fi
 
 cd ../../graphormer/evaluate
-
-CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
-    --user-dir ../../graphormer \
-    --num-workers 16 \
-    --ddp-backend=legacy_ddp \
-    --dataset-name ogbg-molhiv \
-    --dataset-source ogb \
-    --task graph_prediction \
-    --arch graphormer_base \
-    --num-classes 1 \
-    --batch-size 64 \
-    --save-dir ${save_dir} \
-    --split test \
-    --metric auc \
-    --seed 1
-
-CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
-    --user-dir ../../graphormer \
-    --num-workers 16 \
-    --ddp-backend=legacy_ddp \
-    --dataset-name ogbg-molhiv \
-    --dataset-source ogb \
-    --task graph_prediction \
-    --arch graphormer_base \
-    --num-classes 1 \
-    --batch-size 64 \
-    --save-dir ${save_dir} \
-    --split valid \
-    --metric auc \
-    --seed 1
+if [[ $1 == "large" ]]; then
+    if [[ $2 == "preln" ]]; then
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_large \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split test \
+            --metric auc \
+            --seed 1 \
+            --pre-layernorm
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_large \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split valid \
+            --metric auc \
+            --seed 1 \
+            --pre-layernorm
+    else
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_large \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split test \
+            --metric auc \
+            --seed 1
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_large \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split valid \
+            --metric auc \
+            --seed 1
+    fi
+else
+    if [[ $2 == "preln" ]]; then
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_base \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split test \
+            --metric auc \
+            --seed 1 \
+            --pre-layernorm
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_base \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split valid \
+            --metric auc \
+            --seed 1 \
+            --pre-layernorm
+    else
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_base \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split test \
+            --metric auc \
+            --seed 1
+        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --user-dir ../../graphormer \
+            --num-workers 16 \
+            --ddp-backend=legacy_ddp \
+            --dataset-name ogbg-molhiv \
+            --dataset-source ogb \
+            --task graph_prediction \
+            --arch graphormer_base \
+            --num-classes 1 \
+            --batch-size 64 \
+            --save-dir ${save_dir} \
+            --split valid \
+            --metric auc \
+            --seed 1
+    fi
+fi
