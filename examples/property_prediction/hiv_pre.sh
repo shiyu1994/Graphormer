@@ -138,7 +138,7 @@ fi
 
 cd ../../graphormer/evaluate
 
-python evaluate.py \
+CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
     --user-dir ../../graphormer \
     --num-workers 16 \
     --ddp-backend=legacy_ddp \
@@ -153,7 +153,7 @@ python evaluate.py \
     --metric auc \
     --seed 1
 
-python evaluate.py \
+CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
     --user-dir ../../graphormer \
     --num-workers 16 \
     --ddp-backend=legacy_ddp \
