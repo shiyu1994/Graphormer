@@ -7,14 +7,11 @@ epoch=8
 max_epoch=$((epoch + 1))
 batch_size=64
 tot_updates=$((33000*epoch/batch_size/n_gpu))
-warmup_updates=$((tot_updates * 6 / 100))
-
-save_dir=/blob/test_hiv/ckpts_$1_$2_$3_$4_$5
-pretrained_model_name=/blob/test_hiv/test_ckpts/checkpoint_$1_$2.pt
+warmup_updates=$((tot_updates/10))
 
 if [[ $1 == "large" ]]; then
     if [[ $2 == "preln" ]]; then
-        CUDA_VISIBLE_DEVICES=$6 fairseq-train \
+        CUDA_VISIBLE_DEVICES=2,3 fairseq-train \
         --user-dir ../../graphormer \
         --num-workers 16 \
         --ddp-backend=legacy_ddp \
@@ -36,15 +33,15 @@ if [[ $1 == "large" ]]; then
         --encoder-ffn-embed-dim 1024 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir} \
-        --pretrained-model-name ${pretrained_model_name} \
+        --save-dir ./ckpts_$1_$2_$3_$4_$5 \
+        --pretrained-model-name test_ckpts/checkpoint_$1_$2.pt \
         --seed 1 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
         --pre-layernorm
     else
-        CUDA_VISIBLE_DEVICES=$6 fairseq-train \
+        CUDA_VISIBLE_DEVICES=2,3 fairseq-train \
         --user-dir ../../graphormer \
         --num-workers 16 \
         --ddp-backend=legacy_ddp \
@@ -66,8 +63,8 @@ if [[ $1 == "large" ]]; then
         --encoder-ffn-embed-dim 1024 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir} \
-        --pretrained-model-name ${pretrained_model_name} \
+        --save-dir ./ckpts_$1_$2_$3_$4_$5 \
+        --pretrained-model-name test_ckpts/checkpoint_$1_$2.pt \
         --seed 1 \
         --flag-m $3 \
         --flag-step-size $4 \
@@ -75,7 +72,7 @@ if [[ $1 == "large" ]]; then
     fi
 else
     if [[ $2 == "preln" ]]; then
-        CUDA_VISIBLE_DEVICES=$6 fairseq-train \
+        CUDA_VISIBLE_DEVICES=2,3 fairseq-train \
         --user-dir ../../graphormer \
         --num-workers 16 \
         --ddp-backend=legacy_ddp \
@@ -97,15 +94,15 @@ else
         --encoder-ffn-embed-dim 768 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir} \
-        --pretrained-model-name ${pretrained_model_name} \
+        --save-dir ./ckpts_$1_$2_$3_$4_$5 \
+        --pretrained-model-name test_ckpts/checkpoint_$1_$2.pt \
         --seed 1 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
         --pre-layernorm
     else
-        CUDA_VISIBLE_DEVICES=$6 fairseq-train \
+        CUDA_VISIBLE_DEVICES=2,3 fairseq-train \
         --user-dir ../../graphormer \
         --num-workers 16 \
         --ddp-backend=legacy_ddp \
@@ -127,43 +124,11 @@ else
         --encoder-ffn-embed-dim 768 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir} \
-        --pretrained-model-name ${pretrained_model_name} \
+        --save-dir ./ckpts_$1_$2_$3_$4_$5 \
+        --pretrained-model-name test_ckpts/checkpoint_$1_$2.pt \
         --seed 1 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5
     fi
 fi
-
-cd ../../graphormer/evaluate
-
-python evaluate.py \
-    --user-dir ../../graphormer \
-    --num-workers 16 \
-    --ddp-backend=legacy_ddp \
-    --dataset-name ogbg-molhiv \
-    --dataset-source ogb \
-    --task graph_prediction \
-    --arch graphormer_base \
-    --num-classes 1 \
-    --batch-size 64 \
-    --save-dir ${save_dir} \
-    --split test \
-    --metric auc \
-    --seed 1
-
-python evaluate.py \
-    --user-dir ../../graphormer \
-    --num-workers 16 \
-    --ddp-backend=legacy_ddp \
-    --dataset-name ogbg-molhiv \
-    --dataset-source ogb \
-    --task graph_prediction \
-    --arch graphormer_base \
-    --num-classes 1 \
-    --batch-size 64 \
-    --save-dir ${save_dir} \
-    --split valid \
-    --metric auc \
-    --seed 1

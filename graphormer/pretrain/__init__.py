@@ -1,5 +1,6 @@
 from torch.hub import load_state_dict_from_url
 import torch.distributed as dist
+import torch
 
 PRETRAINED_MODEL_URLS = {
     "pcqm4mv1_graphormer_base":"https://szheng.blob.core.windows.net/graphormer/modelzoo/pcqm4mv1/checkpoint_best_pcqm4mv1.pt",
@@ -9,7 +10,7 @@ PRETRAINED_MODEL_URLS = {
 
 def load_pretrained_model(pretrained_model_name):
     if pretrained_model_name not in PRETRAINED_MODEL_URLS:
-        raise ValueError("Unknown pretrained model name %s", pretrained_model_name)
+        return torch.load(pretrained_model_name)["model"]
     if not dist.is_initialized():
         return load_state_dict_from_url(PRETRAINED_MODEL_URLS[pretrained_model_name], progress=True)["model"]
     else:
