@@ -42,7 +42,7 @@ if [[ $1 == "large" ]]; then
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
-        --pre-layernorm
+        --pre-layernorm > $8 2>&1
     else
         CUDA_VISIBLE_DEVICES=$6 fairseq-train \
         --user-dir ../../graphormer \
@@ -57,7 +57,7 @@ if [[ $1 == "large" ]]; then
         --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
         --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
         --lr-scheduler polynomial_decay --power 1 --warmup-updates $warmup_updates --total-num-update $tot_updates \
-        --lr 8e-5 --end-learning-rate 1e-9 \
+        --lr 2e-4 --end-learning-rate 1e-9 \
         --batch-size $batch_size \
         --fp16 \
         --data-buffer-size 20 \
@@ -71,7 +71,7 @@ if [[ $1 == "large" ]]; then
         --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
-        --flag-mag $5
+        --flag-mag $5 > $8 2>&1
     fi
 else
     if [[ $2 == "preln" ]]; then
@@ -103,7 +103,7 @@ else
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
-        --pre-layernorm
+        --pre-layernorm > $8 2>&1
     else
         CUDA_VISIBLE_DEVICES=$6 fairseq-train \
         --user-dir ../../graphormer \
@@ -132,14 +132,14 @@ else
         --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
-        --flag-mag $5
+        --flag-mag $5 > $8 2>&1
     fi
 fi
 
 cd ../../graphormer/evaluate
 if [[ $1 == "large" ]]; then
     if [[ $2 == "preln" ]]; then
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -153,8 +153,8 @@ if [[ $1 == "large" ]]; then
             --split test \
             --metric auc \
             --seed $7 \
-            --pre-layernorm
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --pre-layernorm >> ../../examples/property_prediction/$8 2>&1
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -168,9 +168,9 @@ if [[ $1 == "large" ]]; then
             --split valid \
             --metric auc \
             --seed $7 \
-            --pre-layernorm
+            --pre-layernorm >> ../../examples/property_prediction/$8 2>&1
     else
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -183,8 +183,8 @@ if [[ $1 == "large" ]]; then
             --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed $7
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --seed $7 >> ../../examples/property_prediction/$8 2>&1
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -197,11 +197,11 @@ if [[ $1 == "large" ]]; then
             --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed $7
+            --seed $7 >> ../../examples/property_prediction/$8 2>&1
     fi
 else
     if [[ $2 == "preln" ]]; then
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -215,8 +215,8 @@ else
             --split test \
             --metric auc \
             --seed $7 \
-            --pre-layernorm
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --pre-layernorm >> ../../examples/property_prediction/$8 2>&1
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -230,9 +230,9 @@ else
             --split valid \
             --metric auc \
             --seed $7 \
-            --pre-layernorm
+            --pre-layernorm >> ../../examples/property_prediction/$8 2>&1
     else
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -245,8 +245,8 @@ else
             --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed $7
-        CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
+            --seed $7 >> ../../examples/property_prediction/$8 2>&1
+        CUDA_VISIBLE_DEVICES=$6 python -u evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
             --ddp-backend=legacy_ddp \
@@ -259,6 +259,6 @@ else
             --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed $7
+            --seed $7 >> ../../examples/property_prediction/$8 2>&1
     fi
 fi
