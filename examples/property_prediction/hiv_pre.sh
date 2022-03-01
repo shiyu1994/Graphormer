@@ -3,13 +3,13 @@
 # Licensed under the MIT License.
 
 n_gpu=2
-epoch=8
+epoch=16
 max_epoch=$((epoch + 1))
-batch_size=64
+batch_size=128
 tot_updates=$((33000*epoch/batch_size/n_gpu))
-warmup_updates=$((tot_updates * 6 / 100))
+warmup_updates=$((tot_updates / 10))
 
-save_dir=ckpts_$1_$2_$3_$4_$5
+save_dir=ckpts_$1_$2_$3_$4_$5_$7
 pretrained_model_name=test_ckpts/checkpoint_$1_$2.pt
 
 if [[ $1 == "large" ]]; then
@@ -38,7 +38,7 @@ if [[ $1 == "large" ]]; then
         --max-epoch $max_epoch \
         --save-dir ${save_dir} \
         --pretrained-model-name ${pretrained_model_name} \
-        --seed 1 \
+        --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
@@ -68,7 +68,7 @@ if [[ $1 == "large" ]]; then
         --max-epoch $max_epoch \
         --save-dir ${save_dir} \
         --pretrained-model-name ${pretrained_model_name} \
-        --seed 1 \
+        --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5
@@ -99,7 +99,7 @@ else
         --max-epoch $max_epoch \
         --save-dir ${save_dir} \
         --pretrained-model-name ${pretrained_model_name} \
-        --seed 1 \
+        --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5 \
@@ -127,9 +127,9 @@ else
         --encoder-ffn-embed-dim 768 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir}_try \
+        --save-dir ${save_dir} \
         --pretrained-model-name ${pretrained_model_name} \
-        --seed 1 \
+        --seed $7 \
         --flag-m $3 \
         --flag-step-size $4 \
         --flag-mag $5
@@ -149,10 +149,10 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed 1 \
+            --seed $7 \
             --pre-layernorm
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
             --user-dir ../../graphormer \
@@ -164,10 +164,10 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed 1 \
+            --seed $7 \
             --pre-layernorm
     else
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
@@ -180,10 +180,10 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed 1
+            --seed $7
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
@@ -194,10 +194,10 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed 1
+            --seed $7
     fi
 else
     if [[ $2 == "preln" ]]; then
@@ -211,10 +211,10 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed 1 \
+            --seed $7 \
             --pre-layernorm
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
             --user-dir ../../graphormer \
@@ -226,10 +226,10 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed 1 \
+            --seed $7 \
             --pre-layernorm
     else
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
@@ -242,10 +242,10 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
-            --seed 1
+            --seed $7
         CUDA_VISIBLE_DEVICES=$6 python evaluate.py \
             --user-dir ../../graphormer \
             --num-workers 16 \
@@ -256,9 +256,9 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ${save_dir} \
+            --save-dir ../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
-            --seed 1
+            --seed $7
     fi
 fi

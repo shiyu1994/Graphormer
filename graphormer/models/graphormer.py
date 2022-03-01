@@ -310,6 +310,11 @@ def graphormer_base_architecture(args):
         args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
         args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 768)
 
+    if args.pretrained_model_name != "none":
+        args.dropout = getattr(args, "dropout", 0.0)
+        args.attention_dropout = getattr(args, "attention_dropout", 0.1)
+        args.act_dropout = getattr(args, "act_dropout", 0.1)
+
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
     args.pre_layernorm = getattr(args, "pre_layernorm", False)
