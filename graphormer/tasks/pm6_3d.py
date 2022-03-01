@@ -87,7 +87,7 @@ class PM6Dataset(FairseqDataset):
 
             "net_input": {
                 "atoms": atoms,
-                "tags": torch.zeros_like(atoms).long(),
+                "tags": torch.ones_like(atoms).long(),
                 "pos": pos,
                 "real_mask": torch.ones_like(atoms).bool(),
             },
@@ -105,6 +105,9 @@ class PM6Dataset(FairseqDataset):
 
     def num_tokens(self, index):
         return self.data[index]["pubchem"]["PM6"]["atoms"]["elements"]["atom count"]
+
+    def size(self, index):
+        return self.num_tokens(index)
 
 
 @dataclass

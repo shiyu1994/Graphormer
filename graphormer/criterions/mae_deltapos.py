@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from fairseq import metrics
 from fairseq.criterions import FairseqCriterion, register_criterion
 
+from icecream import ic
 
 @register_criterion("mae_deltapos")
 class IS2RECriterion(FairseqCriterion):
