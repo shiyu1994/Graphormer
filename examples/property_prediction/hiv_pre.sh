@@ -149,7 +149,7 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
             --seed $7 \
@@ -164,7 +164,7 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
             --seed $7 \
@@ -180,7 +180,7 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
             --seed $7
@@ -194,7 +194,7 @@ if [[ $1 == "large" ]]; then
             --arch graphormer_large \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
             --seed $7
@@ -211,7 +211,7 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
             --seed $7 \
@@ -226,7 +226,7 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
             --seed $7 \
@@ -242,7 +242,7 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split test \
             --metric auc \
             --seed $7
@@ -256,7 +256,7 @@ else
             --arch graphormer_base \
             --num-classes 1 \
             --batch-size 64 \
-            --save-dir ../examples/property_prediction/${save_dir} \
+            --save-dir ../../examples/property_prediction/${save_dir} \
             --split valid \
             --metric auc \
             --seed $7
