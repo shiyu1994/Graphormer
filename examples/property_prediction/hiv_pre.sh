@@ -9,8 +9,8 @@ batch_size=64
 tot_updates=$((33000*epoch/batch_size/n_gpu))
 warmup_updates=$((tot_updates * 6 / 100))
 
-save_dir=/blob/test_hiv/ckpts_$1_$2_$3_$4_$5
-pretrained_model_name=/blob/test_hiv/test_ckpts/checkpoint_$1_$2.pt
+save_dir=ckpts_$1_$2_$3_$4_$5
+pretrained_model_name=test_ckpts/checkpoint_$1_$2.pt
 
 if [[ $1 == "large" ]]; then
     if [[ $2 == "preln" ]]; then
@@ -27,7 +27,7 @@ if [[ $1 == "large" ]]; then
         --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
         --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
         --lr-scheduler polynomial_decay --power 1 --warmup-updates $warmup_updates --total-num-update $tot_updates \
-        --lr 8e-5 --end-learning-rate 1e-9 \
+        --lr 2e-4 --end-learning-rate 1e-9 \
         --batch-size $batch_size \
         --fp16 \
         --data-buffer-size 20 \
@@ -57,7 +57,7 @@ if [[ $1 == "large" ]]; then
         --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
         --optimizer adam --adam-betas '(0.9, 0.999)' --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.0 \
         --lr-scheduler polynomial_decay --power 1 --warmup-updates $warmup_updates --total-num-update $tot_updates \
-        --lr 2e-4 --end-learning-rate 1e-9 \
+        --lr 8e-5 --end-learning-rate 1e-9 \
         --batch-size $batch_size \
         --fp16 \
         --data-buffer-size 20 \
@@ -127,7 +127,7 @@ else
         --encoder-ffn-embed-dim 768 \
         --encoder-attention-heads 32 \
         --max-epoch $max_epoch \
-        --save-dir ${save_dir} \
+        --save-dir ${save_dir}_try \
         --pretrained-model-name ${pretrained_model_name} \
         --seed 1 \
         --flag-m $3 \

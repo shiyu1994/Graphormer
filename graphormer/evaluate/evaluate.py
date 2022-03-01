@@ -94,6 +94,11 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             input_dict = {'y_pred': y_pred, 'y_true': y_true}
             result_dict = evaluator.eval(input_dict)
             logger.info(f'PCQM4Mv2Evaluator: {result_dict}')
+        else:
+            evaluator = ogb.lsc.PCQM4MEvaluator()
+            input_dict = {'y_pred': y_pred, 'y_true': y_true}
+            result_dict = evaluator.eval(input_dict)
+            logger.info(f'PCQM4Mv1Evaluator: {result_dict}')
     else:
         if args.metric == "auc":
             auc = roc_auc_score(y_true, y_pred)
