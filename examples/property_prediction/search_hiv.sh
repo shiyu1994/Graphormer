@@ -2,36 +2,37 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-flag_m=3
-flag_step_size=0.001
-flag_mag=0.001
 num_gpu=$1
 job_name=$2
 exp_dir=/blob/search_hiv/${job_name}/
+base_or_large=$3
+postln_or_preln=$4
 
-if [[ ${num_gpu} == "8" ]]; then
-    for ckpt_id in 0 1 2 3 4 5 6 7 8 9 10
+gpu_id=0
+for epoch in 8 16
+do
+    for batch_size in 128 256 512 64
     do
-        for seed in 0 1 2
+        for warmup_percentage in 6 10 20 3
         do
-            bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "0,1" ${seed} ${exp_dir}/base_postln_${seed} ${ckpt_id} &
-            bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "2,3" ${seed} ${exp_dir}/base_preln_${seed} ${ckpt_id} &
-            bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "4,5" ${seed} ${exp_dir}/base_postln_${seed} ${ckpt_id} &
-            bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "6,7" ${seed} ${exp_dir}/base_preln_${seed} ${ckpt_id} &
-            wait
+            for lr in 2e-4 8e-4 4e-5 8e-5
+            do
+                for flag_m in 1 2 3 4 6
+                do
+                    for flag_step_size in 0.001 0.01 0.1 0.2 0.0001
+                    do
+                        for flag_mag in 0.001 0.01 0.1 0 0.0001
+                        do
+                            bash 1 ${epoch} ${batch_size} ${warmup_percentage} ${lr} ${flag_m} ${flag_step_size} ${flag_mag} ${exp_dir} ${base_or_large} ${postln_or_preln} ${gpu_id} &
+                            gpu_id=$((gpu_id+1))
+                            if [[ gpu_id == num_gpu ]]; then
+                                wait
+                                gpu_id=0
+                            fi
+                        done
+                    done
+                done
+            done
         done
     done
-elif [[ ${num_gpu} == "16" ]]; then
-    for seed in 0 1 2
-    do
-        bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "0,1" ${seed} ${exp_dir}/base_postln_${seed} &
-        bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "2,3" ${seed} ${exp_dir}/base_preln_${seed} &
-        bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "4,5" ${seed} ${exp_dir}/base_postln_${seed} &
-        bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "6,7" ${seed} ${exp_dir}/base_preln_${seed} &
-        bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "8,9" ${seed} ${exp_dir}/base_postln_${seed} &
-        bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "10,11" ${seed} ${exp_dir}/base_preln_${seed} &
-        bash hiv_pre.sh base postln ${flag_m} ${flag_step_size} ${flag_mag} "12,13" ${seed} ${exp_dir}/base_postln_${seed} &
-        bash hiv_pre.sh base preln ${flag_m} ${flag_step_size} ${flag_mag} "14,15" ${seed} ${exp_dir}/base_preln_${seed} &
-        wait
-    done
-fi
+done
