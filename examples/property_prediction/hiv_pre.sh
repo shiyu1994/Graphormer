@@ -10,7 +10,7 @@ tot_updates=$((33000*epoch/batch_size/n_gpu))
 warmup_updates=$((tot_updates * 6 / 100))
 
 save_dir=/mnt/shiyu/ckpts_$1_$2_$3_$4_$5_$7
-pretrained_model_name=test_ckpts/checkpoint_$1_$2.pt
+pretrained_model_name=/blob/search_hiv/test_ckpts/checkpoint_$1_$2_$9.pt
 
 if [[ $1 == "large" ]]; then
     if [[ $2 == "preln" ]]; then
