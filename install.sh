@@ -20,3 +20,5 @@ cd fairseq
 # git submodule update --init --recursive
 pip install . --use-feature=in-tree-build
 python setup.py build_ext --inplace
+cd ..
+python setup_cython.py build_ext --inplace

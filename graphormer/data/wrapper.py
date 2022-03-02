@@ -9,7 +9,6 @@ from functools import lru_cache
 import pyximport
 import torch.distributed as dist
 
-pyximport.install(setup_args={"include_dirs": np.get_include()})
 from . import algos
 
 

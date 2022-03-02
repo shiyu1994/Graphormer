@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+# cython: language_level=3
 
 import cython
 from cython.parallel cimport prange, parallel

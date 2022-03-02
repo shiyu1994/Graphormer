@@ -286,15 +286,7 @@ def base_architecture(args):
 
 @register_model_architecture("graphormer", "graphormer_base")
 def graphormer_base_architecture(args):
-    if args.pretrained_model_name == "pcqm4mv1_graphormer_base":
-        args.encoder_layers = 12
-        args.encoder_attention_heads = 32
-        args.encoder_ffn_embed_dim = 768
-        args.encoder_embed_dim = 768
-        args.dropout = getattr(args, "dropout", 0.0)
-        args.attention_dropout = getattr(args, "attention_dropout", 0.1)
-        args.act_dropout = getattr(args, "act_dropout", 0.1)
-    elif args.pretrained_model_name == "pcqm4mv2_graphormer_base":
+    if args.pretrained_model_name != "none":
         args.encoder_layers = 12
         args.encoder_attention_heads = 32
         args.encoder_ffn_embed_dim = 768
@@ -304,16 +296,9 @@ def graphormer_base_architecture(args):
         args.act_dropout = getattr(args, "act_dropout", 0.1)
     else:
         args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 768)
-
         args.encoder_layers = getattr(args, "encoder_layers", 12)
-
         args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
         args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 768)
-
-    if args.pretrained_model_name != "none":
-        args.dropout = getattr(args, "dropout", 0.0)
-        args.attention_dropout = getattr(args, "attention_dropout", 0.1)
-        args.act_dropout = getattr(args, "act_dropout", 0.1)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
@@ -354,12 +339,19 @@ def graphormer_slim_architecture(args):
 
 @register_model_architecture("graphormer", "graphormer_large")
 def graphormer_large_architecture(args):
-    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
-
-    args.encoder_layers = getattr(args, "encoder_layers", 24)
-
-    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
-    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 1024)
+    if args.pretrained_model_name != "none":
+        args.encoder_layers = 24
+        args.encoder_attention_heads = 32
+        args.encoder_ffn_embed_dim = 1024
+        args.encoder_embed_dim = 1024
+        args.dropout = getattr(args, "dropout", 0.0)
+        args.attention_dropout = getattr(args, "attention_dropout", 0.1)
+        args.act_dropout = getattr(args, "act_dropout", 0.1)
+    else:
+        args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
+        args.encoder_layers = getattr(args, "encoder_layers", 24)
+        args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
+        args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 1024)
 
     args.activation_fn = getattr(args, "activation_fn", "gelu")
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
