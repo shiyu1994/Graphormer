@@ -25,8 +25,13 @@ exp_dir=${root}/${job_name}/
 epoch=$6
 batch_size=$7
 warmup_percentage=$8
+num_workers_per_gpu=$9
 
 gpu_id=0
+
+echo "============================= Running a simple task to download MolHIV data ============================="
+bash get_hiv_data.sh
+echo "============================= Finished ============================="
 
 for lr in 2e-4 8e-4 4e-5 8e-5
 do
@@ -36,9 +41,9 @@ do
         do
             for flag_mag in 0.001 0.01 0.1 0 0.0001
             do
-                bash hiv_pre.sh 1 ${epoch} ${batch_size} ${warmup_percentage} ${lr} ${flag_m} ${flag_step_size} ${flag_mag} ${exp_dir} ${base_or_large} ${postln_or_preln} ${gpu_id} ${root} &
-                gpu_id=$((gpu_id+1))
+                bash hiv_pre.sh 1 ${epoch} ${batch_size} ${warmup_percentage} ${lr} ${flag_m} ${flag_step_size} ${flag_mag} ${exp_dir} ${base_or_large} ${postln_or_preln} ${gpu_id} ${root} ${num_workers_per_gpu} &
                 echo "Dispatching to GPU ${gpu_id}"
+                gpu_id=$((gpu_id+1))
                 if [[ "${gpu_id}" == "${num_gpu}" || "${gpu_id}" == "16" ]]; then
                     echo "Waiting"
                     wait

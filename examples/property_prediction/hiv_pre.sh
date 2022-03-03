@@ -32,6 +32,8 @@ base_or_large=${10}
 postln_or_preln=${11}
 gpu_id=${12}
 root_path=${13}
+num_workers_per_gpu=${14}
+num_workers=$((n_gpu * num_workers_per_gpu))
 
 for ckpt_id in 0 1 2 3 4 5
 do
@@ -68,7 +70,7 @@ do
         if [[ ${postln_or_preln} == "preln" ]]; then
             CUDA_VISIBLE_DEVICES=${gpu_id} fairseq-train \
             --user-dir ../../graphormer \
-            --num-workers 16 \
+            --num-workers ${num_workers} \
             --ddp-backend=legacy_ddp \
             --dataset-name ogbg-molhiv \
             --dataset-source ogb \
@@ -94,7 +96,7 @@ do
         else
             CUDA_VISIBLE_DEVICES=${gpu_id} fairseq-train \
             --user-dir ../../graphormer \
-            --num-workers 16 \
+            --num-workers ${num_workers} \
             --ddp-backend=legacy_ddp \
             --dataset-name ogbg-molhiv \
             --dataset-source ogb \
@@ -123,7 +125,7 @@ do
         if [[ ${postln_or_preln} == "preln" ]]; then
             CUDA_VISIBLE_DEVICES=${gpu_id} python -u evaluate.py \
                 --user-dir ../../graphormer \
-                --num-workers 16 \
+                --num-workers ${num_workers} \
                 --ddp-backend=legacy_ddp \
                 --dataset-name ogbg-molhiv \
                 --dataset-source ogb \
@@ -138,7 +140,7 @@ do
                 --pre-layernorm >> ${log_path} 2>&1
             CUDA_VISIBLE_DEVICES=${gpu_id} python -u evaluate.py \
                 --user-dir ../../graphormer \
-                --num-workers 16 \
+                --num-workers ${num_workers} \
                 --ddp-backend=legacy_ddp \
                 --dataset-name ogbg-molhiv \
                 --dataset-source ogb \
@@ -154,7 +156,7 @@ do
         else
             CUDA_VISIBLE_DEVICES=${gpu_id} python -u evaluate.py \
                 --user-dir ../../graphormer \
-                --num-workers 16 \
+                --num-workers ${num_workers} \
                 --ddp-backend=legacy_ddp \
                 --dataset-name ogbg-molhiv \
                 --dataset-source ogb \
@@ -168,7 +170,7 @@ do
                 --seed ${seed} >> ${log_path} 2>&1
             CUDA_VISIBLE_DEVICES=${gpu_id} python -u evaluate.py \
                 --user-dir ../../graphormer \
-                --num-workers 16 \
+                --num-workers ${num_workers} \
                 --ddp-backend=legacy_ddp \
                 --dataset-name ogbg-molhiv \
                 --dataset-source ogb \
