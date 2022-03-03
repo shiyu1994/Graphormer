@@ -36,7 +36,7 @@ if [[ "${num_gpu_per_process}" != "1" && "${num_gpu_per_process}" != "2" && "${n
 fi
 
 echo "============================= Running a simple task to download MolHIV data ============================="
-#bash get_hiv_data.sh
+bash get_hiv_data.sh
 echo "============================= Finished ============================="
 
 for lr in 2e-4 8e-4 4e-5 8e-5
