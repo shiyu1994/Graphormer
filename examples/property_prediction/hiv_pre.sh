@@ -35,7 +35,7 @@ root_path=${13}
 num_workers_per_gpu=${14}
 num_workers=$((n_gpu * num_workers_per_gpu))
 
-for ckpt_id in 0 1 2 3 4 5
+for ckpt_id in 6 7 8 9
 do
     save_dir=${exp_dir}/ng${n_gpu}_ep${epoch}_bs${batch_size}_wp${warmup_percentage}_l${lr}_fm${flag_m}_fss${flag_step_size}_fm${flag_mag}_bol${base_or_large}_pop${postln_or_preln}_gi${gpu_id}
     mkdir -p ${save_dir}
