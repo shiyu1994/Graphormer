@@ -24,20 +24,17 @@ tot_updates=$((33000*epoch/batch_size/n_gpu))
 warmup_percentage=$4
 warmup_updates=$((tot_updates * warmup_percentage / 100))
 lr=$5
-flag_m=$6
-flag_step_size=$7
-flag_mag=$8
-exp_dir=$9
-base_or_large=${10}
-postln_or_preln=${11}
-gpu_id=${12}
-root_path=${13}
-num_workers_per_gpu=${14}
+exp_dir=$6
+base_or_large=${7}
+postln_or_preln=${8}
+gpu_id=${9}
+root_path=${10}
+num_workers_per_gpu=${11}
 num_workers=$((n_gpu * num_workers_per_gpu))
 
-for ckpt_id in 6 7 8 9
+for ckpt_id in 6 7 8 9 0 1 2 3 4 5
 do
-    save_dir=${exp_dir}/ng${n_gpu}_ep${epoch}_bs${batch_size}_wp${warmup_percentage}_l${lr}_fm${flag_m}_fss${flag_step_size}_fm${flag_mag}_bol${base_or_large}_pop${postln_or_preln}_gi${gpu_id}
+    save_dir=${exp_dir}/ng${n_gpu}_ep${epoch}_bs${batch_size}_wp${warmup_percentage}_l${lr}_bol${base_or_large}_pop${postln_or_preln}_gi${gpu_id}
     mkdir -p ${save_dir}
     mkdir -p ${save_dir}/${ckpt_id}
     result_path=${save_dir}/${ckpt_id}/result
@@ -56,9 +53,6 @@ do
         echo "batch_size=${batch_size}" >> ${log_path}
         echo "warmup_percentage=${warmup_percentage}" >> ${log_path}
         echo "lr=${lr}" >> ${log_path}
-        echo "flag_m=${flag_m}" >> ${log_path}
-        echo "flag_step_size=${flag_step_size}" >> ${log_path}
-        echo "flag_mag=${flag_mag}" >> ${log_path}
         echo "exp_dir=${exp_dir}" >> ${log_path}
         echo "base_or_large=${base_or_large}" >> ${log_path}
         echo "postln_or_preln=${postln_or_preln}" >> ${log_path}
@@ -74,8 +68,8 @@ do
             --ddp-backend=legacy_ddp \
             --dataset-name ogbg-molhiv \
             --dataset-source ogb \
-            --task graph_prediction_with_flag \
-            --criterion binary_logloss_with_flag \
+            --task graph_prediction_with \
+            --criterion binary_logloss_with \
             --arch graphormer_${base_or_large} \
             --num-classes 1 \
             --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
@@ -89,9 +83,6 @@ do
             --save-dir ${model_path} \
             --pretrained-model-name ${pretrained_model_name} \
             --seed ${seed} \
-            --flag-m ${flag_m} \
-            --flag-step-size ${flag_step_size} \
-            --flag-mag ${flag_mag} \
             --pre-layernorm >> ${log_path} 2>&1
         else
             CUDA_VISIBLE_DEVICES=${gpu_id} fairseq-train \
@@ -100,8 +91,8 @@ do
             --ddp-backend=legacy_ddp \
             --dataset-name ogbg-molhiv \
             --dataset-source ogb \
-            --task graph_prediction_with_flag \
-            --criterion binary_logloss_with_flag \
+            --task graph_prediction_with \
+            --criterion binary_logloss_with \
             --arch graphormer_${base_or_large} \
             --num-classes 1 \
             --attention-dropout 0.1 --act-dropout 0.1 --dropout 0.0 \
@@ -114,10 +105,7 @@ do
             --max-epoch $max_epoch \
             --save-dir ${model_path} \
             --pretrained-model-name ${pretrained_model_name} \
-            --seed ${seed} \
-            --flag-m ${flag_m} \
-            --flag-step-size ${flag_step_size} \
-            --flag-mag ${flag_mag} >> ${log_path} 2>&1
+            --seed ${seed} >> ${log_path} 2>&1
         fi
 
         cd ../../graphormer/evaluate
