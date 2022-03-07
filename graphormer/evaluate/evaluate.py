@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from fairseq import checkpoint_utils, utils, options, tasks
+from fairseq import utils, options, tasks
 from fairseq.logging import progress_bar
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
 import ogb
@@ -16,6 +16,9 @@ sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 from pretrain import load_pretrained_model
 
 import logging
+from torchmetrics import functional as MF
+import torch
+from icecream import ic
 
 def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     cfg = convert_namespace_to_omegaconf(args)
@@ -82,6 +85,9 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     y_pred = torch.Tensor(y_pred)
     y_true = torch.Tensor(y_true)
 
+    ic(y_pred)
+    ic(y_true)
+
     # evaluate pretrained models
     if use_pretrained:
         if cfg.task.pretrained_model_name == "pcqm4mv1_graphormer_base":
@@ -99,8 +105,26 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             auc = roc_auc_score(y_true, y_pred)
             logger.info(f"auc: {auc}")
         elif args.metric == "mae":
-            mae = np.mean(np.abs(y_true - y_pred))
+            mae = np.mean(np.abs(y_true.numpy() - y_pred.numpy()))
             logger.info(f"mae: {mae}")
+        elif args.metric == "pearson_r":
+            r = MF.pearson_corrcoef(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"pearson_r: {r}")
+        elif args.metric == "spearman_r":
+            r = MF.spearman_corrcoef(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"spearman_r: {r}")
+        elif args.metric == "spearman_r":
+            r = MF.r2_score(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"r2: {r}")
+        elif args.metric == "mse":
+            r = MF.mean_squared_error(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"mse: {r}")
+        elif args.metric == "mape":
+            r = MF.mean_absolute_percentage_error(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"mape: {r}")
+        elif args.metric == "smape":
+            r = MF.symmetric_mean_absolute_percentage_error(y_pred.to(torch.float32), y_true.to(torch.float32))
+            logger.info(f"smape: {r}")
         else:
             raise ValueError(f"Unsupported metric {args.metric}")
 
