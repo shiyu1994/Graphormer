@@ -21,7 +21,7 @@ GCN          | 2.0M    | --    | 0.1379    |
 GIN          | 3.8M    | --    | 0.1195    |
 GCN-VN          | 4.9M    | --    | 0.1153    |
 GIN-VN          | 6.7M    | --    | 0.1083    |
-Graphormer-v2   | 48.3M   | 0.0253    | **0.0864**    |
+Graphormer-v2   | 48.3M   | 0.0348    | **0.0864**    |
 
 #### PCQM4Mv1
 Method        | #params | train MAE | valid MAE |
@@ -32,7 +32,7 @@ GCN-VN          | 4.9M    | 0.1225    | 0.1485    |
 GIN-VN          | 6.7M    | 0.1150    | 0.1395    |
 Graphormer-Small| 12.5M   | 0.0778    | 0.1264    |
 Graphormer   | 47.1M   | 0.0582    | 0.1234    |
-Graphormer-v2   | 48.3M   | 0.0309    | **0.1193**    |
+Graphormer-v2   | 48.3M   | 0.0416    | **0.1193**    |
 
 ## Open Graph Benchmark
 
